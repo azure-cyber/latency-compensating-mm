@@ -1,2 +1,2 @@
 agent,latency_ms,avg_pnl,avg_afr,avg_fills,avg_adverse,std_pnl
-PPO,500,-30.46,0.0,10.0,0.0,8.1116
+PPO,500,-261.5469,0.0,101.0,0.0,229.4358
