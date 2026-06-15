@@ -1,0 +1,4 @@
+strategy,latency_ms,total_pnl,sharpe,sortino,max_drawdown,adverse_fill_rate,quote_util_rate,fill_rate_quoted,n_fills,n_adverse,abstentions,total_steps
+AvellanedaStoikov,500.0,94.7605,158.5998,11.9819,42.5203,0.0,1.0,0.0053,526,0,0,49994
+LatencyPenalized,500.0,224.8903,343.0961,62.8419,35.25,0.0,1.0,0.0052,524,0,0,49994
+LatencyCompensating,500.0,80.7402,245.2527,15.2323,6.0639,0.0,1.0,0.0004,42,0,0,49994
