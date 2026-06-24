@@ -2,7 +2,7 @@
 ## An AI Framework for Retail Liquidity Provision
 
 **Author:** Jude Kriel Ramcharitar
-**SSRN:** https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6954278
+**SSRN:** https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6954278         Currently being published
 **Version:** v1.0 — Working Paper (June 2026)
 
 ---
