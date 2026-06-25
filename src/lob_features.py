@@ -240,7 +240,7 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
         df[f"ask_price_{lvl}_norm"] = (df[f"ask_price_{lvl}"] - mid) / mid
 
     # ── Normalize volumes by rolling mean ─────────────────────────────────────
-    roll_window = 1000
+    roll_window = 10
     for lvl in range(1, DEPTH_LEVELS + 1):
         for side in ("bid", "ask"):
             col      = f"{side}_qty_{lvl}"
@@ -261,7 +261,7 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
         df[f"cum_imbalance_{k}"] = (bid_cum - ask_cum) / (bid_cum + ask_cum + 1e-9)
 
     # ── Mid-price returns (lagged) ────────────────────────────────────────────
-    for lag in [1, 5, 10, 20, 50]:
+    for lag in [1, 2, 3, 5]:
         df[f"return_lag_{lag}"] = mid.pct_change(lag)
 
     # ── Rolling volatility ────────────────────────────────────────────────────
@@ -279,7 +279,7 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     )
 
     # ── Drop NaN rows from rolling computations ───────────────────────────────
-    df = df.dropna().reset_index(drop=True)
+    df = df.fillna(0).reset_index(drop=True)
 
     logger.success(f"Feature engineering complete. Shape: {df.shape}")
     return df

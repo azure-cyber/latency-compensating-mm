@@ -1,3 +1,2 @@
 model,c_index,brier,accuracy
-LSTM,0.6311,0.1886,0.7527
-ConvTransformer,0.4105,0.1859,0.7527
+LSTM,0.5308,0.1845,0.7569
