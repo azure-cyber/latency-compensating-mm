@@ -43,8 +43,8 @@ SYMBOLS = {
 DEPTH_LEVELS   = 10
 FLUSH_INTERVAL = 300
 DATA_DIR       = Path("data/raw")
-RECONNECT_DELAY     = 5
-MAX_RECONNECT       = 20
+RECONNECT_DELAY     = 12      # seconds between retries (5 per minute)
+MAX_RECONNECT       = 50      # 50 retries × 12s = 10 minutes total
 KRAKEN_WS_URL  = "wss://ws.kraken.com/v2"
 
 # ── Globals ───────────────────────────────────────────────────────────────────
@@ -194,23 +194,43 @@ class KrakenBookHandler:
         logger.warning(f"Connection closed (code={code}, msg={msg})")
 
     def run(self):
-        attempts = 0
-        while attempts < MAX_RECONNECT:
-            try:
-                ws = websocket.WebSocketApp(
-                    KRAKEN_WS_URL,
-                    on_open=self.on_open,
-                    on_message=self.on_message,
-                    on_error=self.on_error,
-                    on_close=self.on_close,
-                )
-                ws.run_forever(ping_interval=30, ping_timeout=10)
-            except Exception as exc:
-                logger.error(f"Stream crashed: {exc}")
-            attempts += 1
-            logger.info(f"Reconnecting in {RECONNECT_DELAY}s (attempt {attempts}/{MAX_RECONNECT})…")
-            time.sleep(RECONNECT_DELAY)
-        logger.critical("Max reconnect attempts reached. Giving up.")
+        # Retry indefinitely in outer loop — inner loop handles
+        # planned Kraken server restarts (up to 4 minutes of retries).
+        # After 4 minutes of failed retries, outer loop resets and
+        # we try again from scratch rather than giving up permanently.
+        while True:
+            attempts = 0
+            connected_once = False
+            while attempts < MAX_RECONNECT:
+                try:
+                    self._connected = False
+                    ws = websocket.WebSocketApp(
+                        KRAKEN_WS_URL,
+                        on_open=self.on_open,
+                        on_message=self.on_message,
+                        on_error=self.on_error,
+                        on_close=self.on_close,
+                    )
+                    ws.run_forever(ping_interval=30, ping_timeout=10)
+                    connected_once = True
+                    attempts = 0   # reset counter after clean disconnect
+                except Exception as exc:
+                    logger.error(f"Stream crashed: {exc}")
+                attempts += 1
+                if attempts < MAX_RECONNECT:
+                    logger.info(
+                        f"Reconnecting in {RECONNECT_DELAY}s "
+                        f"(attempt {attempts}/{MAX_RECONNECT} — "
+                        f"up to {MAX_RECONNECT * RECONNECT_DELAY // 60}min total)…"
+                    )
+                    time.sleep(RECONNECT_DELAY)
+            logger.warning(
+                f"Failed to reconnect after {MAX_RECONNECT} attempts "
+                f"({MAX_RECONNECT * RECONNECT_DELAY}s). "
+                f"Flushing data and restarting connection loop…"
+            )
+            _flush_all()
+            time.sleep(60)   # wait 1 minute before outer loop retry
 
 
 # ── Flush thread ──────────────────────────────────────────────────────────────
